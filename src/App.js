@@ -1,38 +1,41 @@
 import React, { useEffect, useState } from "react"
 import axios from "axios"
 
-const url = "http:localhost:8888"
-const headers = new Headers()
+const uri = "http://localhost:8888/"
 
-const SimpleGetRequest = () => {
+const MyLikedSongs = () => {
   const [appState, setAppState] = useState({ respone: null, loading: false })
+
+  const TrackNames = ({ json }) => {
+    if (!json) return null
+    console.log(json)
+
+    return json.items.map((elem, i) => <p key={i}>{elem.track.name}</p>)
+  }
 
   useEffect(() => {
     setAppState({ loading: false })
-    axios.get(url, { headers: headers }).then(response => {
-      setAppState({ loading: false, response: response })
-    })
+    axios
+      .get(uri)
+      .then(({ data }) => {
+        setAppState({ loading: false, response: data.body ? data.body : data })
+      })
+      .catch(e => {
+        console.error(e)
+      })
   }, [setAppState])
 
-  return <pre>{JSON.stringify(appState.response, null, 2)}</pre>
-}
-
-const SpotifyLanding = () => {
   return (
-    <div className="container">
-      <div id="login">
-        <h1>This is an example of the Authorization Code flow</h1>
-        <a href="/login" className="btn btn-primary">
-          Log in with Spotify
+    <div>
+      {appState.response && appState.response.authLink ? (
+        <a href={appState.response.authLink}>
+          <button>Auth Page</button>
         </a>
-      </div>
-      <div id="loggedin">
-        <div id="user-profile"></div>
-        <div id="oauth"></div>
-        <button className="btn btn-default" id="obtain-new-token">
-          Obtain new token using the refresh token
-        </button>
-      </div>
+      ) : (
+        <div>
+          <TrackNames json={appState.response} />
+        </div>
+      )}
     </div>
   )
 }
@@ -40,8 +43,7 @@ const SpotifyLanding = () => {
 const App = () => {
   return (
     <>
-      <SimpleGetRequest />
-      <SpotifyLanding />
+      <MyLikedSongs />
     </>
   )
 }
