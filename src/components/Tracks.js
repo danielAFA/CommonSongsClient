@@ -1,15 +1,15 @@
 import React from "react"
 
-export default ({ json }) => {
-  if (!json) return null
-  const TrackList = ({ json }) => {
+export default ({ trackList }) => {
+  if (!trackList) return null
+  const TrackList = ({ trackList }) => {
     return (
       <ul>
-        {json.items.map((elem, i) => (
+        {trackList.map((elem, i) => (
           <li key={i}>{elem.track.name}</li>
         ))}
       </ul>
     )
   }
-  return <TrackList json={json} />
+  return <TrackList trackList={trackList} />
 }

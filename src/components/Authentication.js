@@ -8,12 +8,13 @@ const uri = `http://localhost:${serverPort}/`
 export default () => {
   const [authStatus, setAuthStatus] = useState()
   const [tracks, setTracks] = useState()
+  const [intReady, setIntReady] = useState()
 
   //data = {status: bool, authLink: string}
   const authorizationRequest = async path => {
     try {
       const { data } = await axios.get(uri + path)
-      await setAuthStatus(data)
+      setAuthStatus(data)
       console.log(data)
     } catch (e) {
       console.error(e)
@@ -22,8 +23,19 @@ export default () => {
 
   const tracksRequest = async () => {
     try {
-      const { data } = await axios.get(uri + "recent_tracks")
-      await setTracks(data.body)
+      const { data } = await axios.get(uri + "all_tracks")
+      console.log(data.tracks)
+      setTracks(data.tracks)
+      setIntReady(data.intersectionReady)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const intersectionRequest = async () => {
+    try {
+      const { data } = await axios.get(uri + "intersection")
+      setTracks(data)
       console.log(data)
     } catch (e) {
       console.error(e)
@@ -37,7 +49,10 @@ export default () => {
 
   const handleGetTracksClick = () => {
     tracksRequest()
-    console.log("tracks:" + tracks)
+  }
+
+  const handleGetIntersectionClick = () => {
+    intersectionRequest()
   }
 
   useEffect(() => {
@@ -50,13 +65,20 @@ export default () => {
     return (
       <div>
         {authStatus.authorized ? (
-          <button onClick={handleResetClick}>Log out</button>
+          <>
+            <button onClick={handleResetClick}>Log out</button>
+            <button onClick={handleGetTracksClick}>Get Tracks!</button>
+            {intReady && (
+              <button onClick={handleGetIntersectionClick}>
+                Get Intersection!
+              </button>
+            )}
+          </>
         ) : (
           <a href={authStatus.authLink}>
             <button>Log in</button>
           </a>
         )}
-        <button onClick={handleGetTracksClick}>Get Tracks!</button>
       </div>
     )
   }
@@ -64,7 +86,7 @@ export default () => {
   return (
     <>
       <AuthenticationOptions />
-      <Tracks json={tracks} />
+      <Tracks trackList={tracks} />
     </>
   )
 }
