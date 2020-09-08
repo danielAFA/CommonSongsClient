@@ -4,6 +4,7 @@ import Tracks from "./Tracks"
 import UserSelection from "./UserSelection"
 
 const serverPort = 8888
+const herokuUrl = `https://spotialike-server.herokuapp.com/`
 const uri = `http://localhost:${serverPort}/`
 
 export default () => {
