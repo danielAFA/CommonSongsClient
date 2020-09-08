@@ -1,14 +1,13 @@
-import React from "react"
+import React, { useMemo } from "react"
 
-export default ({ trackList }) => {
-  if (!trackList) return null
-  const columns = ["cover", "name", "artists", "album"]
-  const TrackTable = ({ trackList }) => {
+const Tracks = ({ trackList }) => {
+  const TrackTable = useMemo(() => {
+    const columns = ["cover", "name", "artists", "album"]
     return (
       <tbody>
         <tr>
           {columns.map((el, i) => (
-            <th key={-i}>{el}</th>
+            <th key={i}>{el}</th>
           ))}
         </tr>
 
@@ -31,10 +30,8 @@ export default ({ trackList }) => {
         ))}
       </tbody>
     )
-  }
-  return (
-    <table>
-      <TrackTable trackList={trackList} />
-    </table>
-  )
+  }, [trackList])
+  return <table>{TrackTable}</table>
 }
+
+export default Tracks

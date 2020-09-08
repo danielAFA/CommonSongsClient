@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import axios from "axios"
 import Tracks from "./Tracks"
+import UserSelection from "./UserSelection"
 
 const serverPort = 8888
 const uri = `http://localhost:${serverPort}/`
@@ -9,6 +10,8 @@ export default () => {
   const [authStatus, setAuthStatus] = useState()
   const [tracks, setTracks] = useState()
   const [intReady, setIntReady] = useState()
+  const [availableUsers, setAvailableUsers] = useState()
+  const [intersectionWith, setIntersectionWith] = useState()
 
   //data = {status: bool, authLink: string}
   const authorizationRequest = async path => {
@@ -23,10 +26,11 @@ export default () => {
 
   const tracksRequest = async () => {
     try {
-      const { data } = await axios.get(uri + "all_tracks")
+      const { data } = await axios.get(uri + "user_tracks")
       console.log(data.tracks)
       setTracks(data.tracks)
       setIntReady(data.intersectionReady)
+      setAvailableUsers(data.filteredIds)
     } catch (e) {
       console.error(e)
     }
@@ -34,7 +38,11 @@ export default () => {
 
   const intersectionRequest = async () => {
     try {
-      const { data } = await axios.get(uri + "intersection")
+      const { data } = await axios.get(uri + "intersection", {
+        params: {
+          userId: intersectionWith,
+        },
+      })
       setTracks(data)
       console.log(data)
     } catch (e) {
@@ -44,7 +52,6 @@ export default () => {
 
   const handleResetClick = () => {
     authorizationRequest("reset")
-    console.log(authStatus)
   }
 
   const handleGetTracksClick = () => {
@@ -60,15 +67,13 @@ export default () => {
   }, [])
 
   const AuthenticationOptions = () => {
-    if (!authStatus) return null
-
     return (
       <div>
         {authStatus.authorized ? (
           <>
             <button onClick={handleResetClick}>Log out</button>
             <button onClick={handleGetTracksClick}>Get Tracks!</button>
-            {intReady && (
+            {intReady && intersectionWith && (
               <button onClick={handleGetIntersectionClick}>
                 Get Intersection!
               </button>
@@ -85,8 +90,14 @@ export default () => {
 
   return (
     <>
-      <AuthenticationOptions />
-      <Tracks trackList={tracks} />
+      {authStatus && <AuthenticationOptions />}
+      {availableUsers && (
+        <UserSelection
+          availableUsers={availableUsers}
+          setIntersectionWith={setIntersectionWith}
+        />
+      )}
+      {tracks && <Tracks trackList={tracks} />}
     </>
   )
 }
