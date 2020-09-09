@@ -3,9 +3,7 @@ import axios from "axios"
 import Tracks from "./Tracks"
 import UserSelection from "./UserSelection"
 
-const serverPort = 8888
-const herokuUrl = `https://spotialike-server.herokuapp.com/`
-const uri = `http://localhost:${serverPort}/`
+const uri = `https://spotialike-server.herokuapp.com/`
 
 export default () => {
   const [authStatus, setAuthStatus] = useState()
@@ -14,7 +12,6 @@ export default () => {
   const [availableUsers, setAvailableUsers] = useState()
   const [intersectionWith, setIntersectionWith] = useState()
 
-  //data = {status: bool, authLink: string}
   const authorizationRequest = async path => {
     try {
       const { data } = await axios.get(uri + path)
