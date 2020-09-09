@@ -3,6 +3,8 @@ import axios from "axios"
 import Tracks from "./Tracks"
 import UserSelection from "./UserSelection"
 
+axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*"
+axios.defaults.headers.common["Content-Type"] = "application/json"
 const uri = `https://spotialike-server.herokuapp.com/`
 
 export default () => {
