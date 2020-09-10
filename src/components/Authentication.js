@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import Tracks from "./Tracks"
 import UserSelection from "./UserSelection"
 
 axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*"
 axios.defaults.headers.common["Content-Type"] = "application/json"
-const uri = `https://spotialike-server.herokuapp.com/`
+
+const serverPort = 80
+const uri = `http://localhost:${serverPort}/`
 
 export default () => {
   const [authStatus, setAuthStatus] = useState()
@@ -14,29 +16,33 @@ export default () => {
   const [availableUsers, setAvailableUsers] = useState()
   const [intersectionWith, setIntersectionWith] = useState()
 
-  const authorizationRequest = async path => {
-    try {
-      const { data } = await axios.get(uri + path)
-      setAuthStatus(data)
-      console.log(data)
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const tracksRequest = async () => {
+  const tracksRequest = useCallback(async () => {
     try {
       const { data } = await axios.get(uri + "user_tracks")
-      console.log(data.tracks)
       setTracks(data.tracks)
       setIntReady(data.intersectionReady)
       setAvailableUsers(data.filteredIds)
+      console.log(data.filteredIds)
     } catch (e) {
       console.error(e)
     }
-  }
+  }, [setTracks, setIntReady, setAvailableUsers])
+
+  const authorizationRequest = useCallback(
+    async path => {
+      try {
+        const { data } = await axios.get(uri + path)
+        setAuthStatus(data)
+        if (data.authorized) tracksRequest()
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    [setAuthStatus, tracksRequest]
+  )
 
   const intersectionRequest = async () => {
+    console.log(intersectionWith)
     try {
       const { data } = await axios.get(uri + "intersection", {
         params: {
@@ -44,7 +50,6 @@ export default () => {
         },
       })
       setTracks(data)
-      console.log(data)
     } catch (e) {
       console.error(e)
     }
@@ -52,10 +57,7 @@ export default () => {
 
   const handleResetClick = () => {
     authorizationRequest("reset")
-  }
-
-  const handleGetTracksClick = () => {
-    tracksRequest()
+    window.location.reload()
   }
 
   const handleGetIntersectionClick = () => {
@@ -64,7 +66,7 @@ export default () => {
 
   useEffect(() => {
     authorizationRequest("auth")
-  }, [])
+  }, [authorizationRequest])
 
   const AuthenticationOptions = () => {
     return (
@@ -72,12 +74,6 @@ export default () => {
         {authStatus.authorized ? (
           <>
             <button onClick={handleResetClick}>Log out</button>
-            <button onClick={handleGetTracksClick}>Get Tracks!</button>
-            {intReady && intersectionWith && (
-              <button onClick={handleGetIntersectionClick}>
-                Get Intersection!
-              </button>
-            )}
           </>
         ) : (
           <a href={authStatus.authLink}>
@@ -88,6 +84,17 @@ export default () => {
     )
   }
 
+  const IntersectionButton = () => {
+    return (
+      <>
+        {
+          <button onClick={handleGetIntersectionClick}>
+            Get Intersection!
+          </button>
+        }
+      </>
+    )
+  }
   return (
     <>
       {authStatus && <AuthenticationOptions />}
@@ -97,6 +104,7 @@ export default () => {
           setIntersectionWith={setIntersectionWith}
         />
       )}
+      {intReady && intersectionWith && <IntersectionButton />}
       {tracks && <Tracks trackList={tracks} />}
     </>
   )
