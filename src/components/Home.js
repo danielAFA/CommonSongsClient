@@ -5,8 +5,7 @@ import UserSelection from "./UserSelection"
 
 axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*"
 axios.defaults.headers.common["Content-Type"] = "application/json"
-
-const uri = `https://spotialike-server.herokuapp.com/`
+const uri = `http://localhost:80/`
 
 export default () => {
   const [authStatus, setAuthStatus] = useState()

@@ -10,11 +10,10 @@ const Tracks = ({ trackList }) => {
 
   const ShowTable = () => {
     return (
-      <button onClick={handleClick}>
-        {!showTable ? "Show " : "Hide"} List
-      </button>
+      <button onClick={handleClick}>{!showTable ? "Show" : "Hide"} List</button>
     )
   }
+
   const TrackTable = useMemo(() => {
     const columns = ["cover", "name", "artists", "album"]
     return (
@@ -46,14 +45,16 @@ const Tracks = ({ trackList }) => {
     )
   }, [trackList])
   return (
-    <div>
-      {trackListSize > 0 ? (
-        <ShowTable />
-      ) : (
-        <div> You have 0 songs in common D: </div>
-      )}
-      {showTable && <table>{TrackTable}</table>}
-    </div>
+    <>
+      <div>
+        {trackListSize > 0 ? (
+          <ShowTable />
+        ) : (
+          <div> You have 0 songs in common D: </div>
+        )}
+      </div>
+      <div>{showTable && <table>{TrackTable}</table>}</div>
+    </>
   )
 }
 
