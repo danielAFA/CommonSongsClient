@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useMemo } from "react"
+import React, { useState, useCallback, useMemo } from "react";
 
 const UserSelection = ({ availableUsers, setIntersectionWith }) => {
   const [selectStates, updateSelectStates] = useState(
     availableUsers.map(user => ({ name: user, selected: false }))
-  )
+  );
 
   const handleSelection = useCallback(
     e => {
@@ -11,12 +11,12 @@ const UserSelection = ({ availableUsers, setIntersectionWith }) => {
         user.name === e.target.value
           ? { ...user, selected: true }
           : { ...user, selected: false }
-      )
-      updateSelectStates(newStates)
-      setIntersectionWith(e.target.value)
+      );
+      updateSelectStates(newStates);
+      setIntersectionWith(e.target.value);
     },
     [selectStates, setIntersectionWith]
-  )
+  );
 
   const Options = useMemo(
     () =>
@@ -33,7 +33,7 @@ const UserSelection = ({ availableUsers, setIntersectionWith }) => {
         </label>
       )),
     [selectStates, handleSelection]
-  )
+  );
 
   return (
     <>
@@ -46,7 +46,7 @@ const UserSelection = ({ availableUsers, setIntersectionWith }) => {
         {Options}
       </div>
     </>
-  )
-}
+  );
+};
 
-export default UserSelection
+export default UserSelection;

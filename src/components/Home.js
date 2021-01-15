@@ -1,86 +1,80 @@
-import React, { useState, useEffect, useCallback } from "react"
-import axios from "axios"
-import Tracks from "./Tracks"
-import UserSelection from "./UserSelection"
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import Tracks from "./Tracks";
+import UserSelection from "./UserSelection";
+import { LogInButton, LogOutButton } from "./LogIn";
 
-axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*"
-axios.defaults.headers.common["Content-Type"] = "application/json"
-const uri = `http://localhost:80/`
+axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
+axios.defaults.headers.common["Content-Type"] = "application/json";
+const serverUri = `http://localhost:80/`;
 
 export default () => {
-  const [authStatus, setAuthStatus] = useState()
-  const [tracks, setTracks] = useState()
-  const [intReady, setIntReady] = useState()
-  const [availableUsers, setAvailableUsers] = useState()
-  const [intersectionWith, setIntersectionWith] = useState()
+  const [tokens, setTokens] = useState();
+  const [tracks, setTracks] = useState();
+  const [intReady, setIntReady] = useState();
+  const [users, setUsers] = useState();
+  const [currentUserId, setCurrentUserId] = useState();
+  const [idIntersectWith, setIdIntersectWith] = useState();
+
+  const getTokens = useCallback(() => {
+    const search = window.location.search;
+    const params = new URLSearchParams(search);
+    if (params.get("aT"))
+      setTokens({ aT: params.get("aT"), rT: params.get("rT") });
+  }, [setTokens]);
+
+  const requestUsers = useCallback(async () => {
+    try {
+      const {
+        data: { userIds },
+      } = await axios.get(serverUri + "users");
+      setUsers(userIds);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [setUsers]);
 
   const tracksRequest = useCallback(async () => {
     try {
-      const { data } = await axios.get(uri + "user_tracks")
-      setTracks(data.tracks)
-      setIntReady(data.intersectionReady)
-      setAvailableUsers(data.filteredIds)
-      console.log(data.filteredIds)
+      const { data } = await axios.get(serverUri + "user_tracks");
+      setTracks(data.tracks);
+      setIntReady(data.intersectionReady);
+      setUsers(data.availableUsers);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
-  }, [setTracks, setIntReady, setAvailableUsers])
-
-  const authorizationRequest = useCallback(
-    async path => {
-      try {
-        const { data } = await axios.get(uri + path)
-        setAuthStatus(data)
-        if (data.authorized) tracksRequest()
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    [setAuthStatus, tracksRequest]
-  )
+  }, [setTracks, setIntReady, setUsers]);
 
   const intersectionRequest = async () => {
-    console.log(intersectionWith)
+    console.log(idIntersectWith);
     try {
-      const { data } = await axios.get(uri + "intersection", {
+      const { data } = await axios.get(serverUri + "intersection", {
         params: {
-          userId: intersectionWith,
+          userId: idIntersectWith,
         },
-      })
-      setTracks(data)
+      });
+      setTracks(data);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
-  }
+  };
 
   const handleResetClick = () => {
-    authorizationRequest("reset")
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   const handleGetIntersectionClick = () => {
-    intersectionRequest()
-  }
+    intersectionRequest();
+  };
+
+  const driver = useCallback(() => {
+    if (!tokens) getTokens();
+    if (tokens && !users) requestUsers();
+  }, [tokens, users, getTokens, requestUsers]);
 
   useEffect(() => {
-    authorizationRequest("auth")
-  }, [authorizationRequest])
-
-  const AuthenticationOptions = () => {
-    return (
-      <div>
-        {authStatus.authorized ? (
-          <>
-            <button onClick={handleResetClick}>Log out</button>
-          </>
-        ) : (
-          <a href={authStatus.authLink}>
-            <button>Log in</button>
-          </a>
-        )}
-      </div>
-    )
-  }
+    driver();
+  }, [driver]);
 
   const IntersectionButton = () => {
     return (
@@ -91,19 +85,19 @@ export default () => {
           </button>
         }
       </>
-    )
-  }
+    );
+  };
   return (
     <>
-      {authStatus && <AuthenticationOptions />}
-      {availableUsers && (
+      {tokens ? <LogOutButton /> : <LogInButton />}
+      {users && (
         <UserSelection
-          availableUsers={availableUsers}
-          setIntersectionWith={setIntersectionWith}
+          availableUsers={users}
+          setIntersectionWith={setIdIntersectWith}
         />
       )}
-      {intReady && intersectionWith && <IntersectionButton />}
+      {intReady && idIntersectWith && <IntersectionButton />}
       {tracks && <Tracks trackList={tracks} />}
     </>
-  )
-}
+  );
+};

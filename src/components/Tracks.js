@@ -1,21 +1,21 @@
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState } from "react";
 
 const Tracks = ({ trackList }) => {
-  const trackListSize = trackList.length
-  const [showTable, setShowTable] = useState(trackListSize > 0)
+  const trackListSize = trackList.length;
+  const [showTable, setShowTable] = useState(trackListSize > 0);
 
   const handleClick = () => {
-    setShowTable(!showTable)
-  }
+    setShowTable(!showTable);
+  };
 
   const ShowTable = () => {
     return (
       <button onClick={handleClick}>{!showTable ? "Show" : "Hide"} List</button>
-    )
-  }
+    );
+  };
 
   const TrackTable = useMemo(() => {
-    const columns = ["cover", "name", "artists", "album"]
+    const columns = ["cover", "name", "artists", "album"];
     return (
       <tbody>
         <tr>
@@ -27,23 +27,23 @@ const Tracks = ({ trackList }) => {
         {trackList.map((elem, i) => (
           <tr key={i}>
             <td>
-              {elem.track.album.images[2] && (
+              {elem.album.images[2] && (
                 <img
-                  src={elem.track.album.images[2].url}
+                  src={elem.album.images[2].url}
                   alt="album cover"
-                  width={elem.track.album.images[2].width}
-                  height={elem.track.album.images[2].height}
+                  width={elem.album.images[2].width}
+                  height={elem.album.images[2].height}
                 ></img>
               )}
             </td>
-            <td>{elem.track.name}</td>
-            <td>{elem.track.artists.map(el => el.name).join(", ")}</td>
-            <td>{elem.track.album.name}</td>
+            <td>{elem.name}</td>
+            <td>{elem.artists.map(el => el.name).join(", ")}</td>
+            <td>{elem.album.name}</td>
           </tr>
         ))}
       </tbody>
-    )
-  }, [trackList])
+    );
+  }, [trackList]);
   return (
     <>
       <div>
@@ -55,7 +55,7 @@ const Tracks = ({ trackList }) => {
       </div>
       <div>{showTable && <table>{TrackTable}</table>}</div>
     </>
-  )
-}
+  );
+};
 
-export default Tracks
+export default Tracks;
