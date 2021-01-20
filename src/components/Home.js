@@ -18,7 +18,6 @@ export default () => {
     const search = window.location.search;
     const params = new URLSearchParams(search);
     if (params.get("aT")) {
-      console.log("happened");
       setTokens({ accessT: params.get("aT"), refreshT: params.get("rT") });
     }
   }, [setTokens]);
@@ -27,7 +26,7 @@ export default () => {
     try {
       const {
         data: { userId },
-      } = await axios.get(serverUri + "save", {
+      } = await axios.get(serverUri + "store", {
         params: tokens,
       });
       setCurrentUserId(userId);
