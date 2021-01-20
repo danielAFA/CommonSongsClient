@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Tracks from "./Tracks";
 import UserSelection from "./UserSelection";
-import { LogInButton, LogOutButton } from "./LogIn";
+import LogIn from "./LogIn";
 
 axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -11,93 +11,76 @@ const serverUri = `http://localhost:80/`;
 export default () => {
   const [tokens, setTokens] = useState();
   const [tracks, setTracks] = useState();
-  const [intReady, setIntReady] = useState();
-  const [users, setUsers] = useState();
   const [currentUserId, setCurrentUserId] = useState();
-  const [idIntersectWith, setIdIntersectWith] = useState();
+  const [intersectWith, setIntersectWith] = useState();
 
-  const getTokens = useCallback(() => {
+  const retrieveTokens = useCallback(() => {
     const search = window.location.search;
     const params = new URLSearchParams(search);
-    if (params.get("aT"))
-      setTokens({ aT: params.get("aT"), rT: params.get("rT") });
+    if (params.get("aT")) {
+      console.log("happened");
+      setTokens({ accessT: params.get("aT"), refreshT: params.get("rT") });
+    }
   }, [setTokens]);
 
-  const requestUsers = useCallback(async () => {
+  const requestCurrentUserId = useCallback(async () => {
     try {
       const {
-        data: { userIds },
-      } = await axios.get(serverUri + "users");
-      setUsers(userIds);
+        data: { userId },
+      } = await axios.get(serverUri + "save", {
+        params: tokens,
+      });
+      setCurrentUserId(userId);
     } catch (e) {
       console.error(e);
     }
-  }, [setUsers]);
+  }, [tokens, setCurrentUserId]);
 
-  const tracksRequest = useCallback(async () => {
+  const requestIntersection = useCallback(async () => {
     try {
-      const { data } = await axios.get(serverUri + "user_tracks");
-      setTracks(data.tracks);
-      setIntReady(data.intersectionReady);
-      setUsers(data.availableUsers);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [setTracks, setIntReady, setUsers]);
-
-  const intersectionRequest = async () => {
-    console.log(idIntersectWith);
-    try {
-      const { data } = await axios.get(serverUri + "intersection", {
+      const {
+        data: { intersection },
+      } = await axios.get(serverUri + "intersection", {
         params: {
-          userId: idIntersectWith,
+          id1: currentUserId,
+          id2: intersectWith,
         },
       });
-      setTracks(data);
+      setTracks(intersection);
     } catch (e) {
       console.error(e);
     }
-  };
-
-  const handleResetClick = () => {
-    window.location.reload();
-  };
-
-  const handleGetIntersectionClick = () => {
-    intersectionRequest();
-  };
-
-  const driver = useCallback(() => {
-    if (!tokens) getTokens();
-    if (tokens && !users) requestUsers();
-  }, [tokens, users, getTokens, requestUsers]);
+  }, [currentUserId, intersectWith, setTracks]);
 
   useEffect(() => {
-    driver();
-  }, [driver]);
+    if (!tokens) retrieveTokens();
+    else {
+      requestCurrentUserId();
+    }
+  }, [tokens, retrieveTokens, requestCurrentUserId]);
 
   const IntersectionButton = () => {
     return (
-      <>
-        {
-          <button onClick={handleGetIntersectionClick}>
-            Get Intersection!
-          </button>
-        }
-      </>
+      <button
+        onClick={() => {
+          requestIntersection();
+        }}
+      >
+        Get Intersection
+      </button>
     );
   };
   return (
-    <>
-      {tokens ? <LogOutButton /> : <LogInButton />}
-      {users && (
+    <div>
+      <LogIn loggedIn={tokens} />
+      {currentUserId && (
         <UserSelection
-          availableUsers={users}
-          setIntersectionWith={setIdIntersectWith}
+          currentUserId={currentUserId}
+          setIntersectWith={setIntersectWith}
         />
       )}
-      {intReady && idIntersectWith && <IntersectionButton />}
+      {intersectWith && <IntersectionButton />}
       {tracks && <Tracks trackList={tracks} />}
-    </>
+    </div>
   );
 };

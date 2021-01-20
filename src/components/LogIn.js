@@ -1,38 +1,39 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-export const LogInButton = () => {
-  const serverUri = `http://localhost:80/`;
-  const source = axios.CancelToken.source();
-  const [authUrl, setAuthUrl] = useState();
+const LogIn = ({ loggedIn }) => {
+  const LogInButton = () => {
+    const [authUrl, setAuthUrl] = useState();
+    useEffect(() => {
+      const serverUri = `http://localhost:80/`;
+      const source = axios.CancelToken.source();
+      axios
+        .get(serverUri + "auth", {
+          cancelToken: source.token,
+        })
+        .then(response => {
+          setAuthUrl(response.data.authUrl);
+        })
+        .catch(err => {
+          if (!axios.isCancel(err)) console.log(err);
+        });
+      return () => source.cancel();
+    }, []);
 
-  const requestAuthUrl = async () => {
-    try {
-      const {
-        data: { authUrl },
-      } = await axios.get(serverUri + "auth", {
-        cancelToken: source.token,
-      });
-      setAuthUrl(authUrl);
-    } catch (err) {
-      if (!axios.isCancel(err)) console.log(err);
-    }
+    return (
+      <a href={authUrl}>
+        <button>Log in</button>
+      </a>
+    );
   };
 
-  useEffect(() => {
-    requestAuthUrl();
-    return () => source.cancel();
-  });
-
-  return (
-    <a href={authUrl}>
-      <button>Log in</button>
+  const LogOutButton = () => (
+    <a href="http://localhost:3000/">
+      <button>Log out</button>
     </a>
   );
+
+  return <div>{loggedIn ? <LogOutButton /> : <LogInButton />}</div>;
 };
 
-export const LogOutButton = () => (
-  <a href="http://localhost:3000/">
-    <button>Log out</button>
-  </a>
-);
+export default LogIn;

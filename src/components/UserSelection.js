@@ -1,9 +1,26 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import axios from "axios";
 
-const UserSelection = ({ availableUsers, setIntersectionWith }) => {
-  const [selectStates, updateSelectStates] = useState(
-    availableUsers.map(user => ({ name: user, selected: false }))
-  );
+const UserSelection = ({ currentUserId, setIntersectWith }) => {
+  const [users, setUsers] = useState();
+  const [selectStates, setSelectStates] = useState([]);
+
+  useEffect(() => {
+    const serverUri = `http://localhost:80/`;
+    const requestUsers = async () => {
+      try {
+        let {
+          data: { userIds },
+        } = await axios.get(serverUri + "user_ids");
+        userIds = userIds.filter(id => id !== currentUserId);
+        setUsers(userIds);
+        setSelectStates(userIds.map(user => ({ name: user, selected: false })));
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    requestUsers();
+  }, [currentUserId]);
 
   const handleSelection = useCallback(
     e => {
@@ -12,40 +29,45 @@ const UserSelection = ({ availableUsers, setIntersectionWith }) => {
           ? { ...user, selected: true }
           : { ...user, selected: false }
       );
-      updateSelectStates(newStates);
-      setIntersectionWith(e.target.value);
+      setSelectStates(newStates);
+      setIntersectWith(e.target.value);
     },
-    [selectStates, setIntersectionWith]
+    [selectStates, setIntersectWith]
   );
 
   const Options = useMemo(
-    () =>
-      selectStates.map((option, i) => (
-        <label key={i}>
-          <input
-            type="radio"
-            name="user"
-            value={option.name}
-            checked={option.selected}
-            onChange={handleSelection}
-          />
-          {option.name}
-        </label>
-      )),
+    () => (
+      <ul>
+        {selectStates.map((option, i) => (
+          <li key={i}>
+            <label>
+              <input
+                type="radio"
+                name="user"
+                value={option.name}
+                checked={option.selected}
+                onChange={handleSelection}
+              />
+              {option.name}
+            </label>
+          </li>
+        ))}
+      </ul>
+    ),
     [selectStates, handleSelection]
   );
 
   return (
-    <>
-      <div>
-        <div>
-          {availableUsers.length > 0
+    <div>
+      {users && (
+        <>
+          {users.length > 0
             ? "Compare liked songs with: "
             : "No users to compare with yet"}
-        </div>
-        {Options}
-      </div>
-    </>
+          {Options}
+        </>
+      )}
+    </div>
   );
 };
 
