@@ -3,16 +3,19 @@ import axios from "axios";
 import Tracks from "./Tracks";
 import UserSelection from "./UserSelection";
 import LogIn from "./LogIn";
+import GeneratePlaylist from "./GeneratePlaylist";
+import DropUser from "./DropUser";
 
 axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
 axios.defaults.headers.common["Content-Type"] = "application/json";
 const serverUri = `http://localhost:80/`;
 
-export default () => {
+const Home = () => {
   const [tokens, setTokens] = useState();
   const [tracks, setTracks] = useState();
   const [currentUserId, setCurrentUserId] = useState();
   const [intersectWith, setIntersectWith] = useState();
+  const [loading, setLoading] = useState();
 
   const retrieveTokens = useCallback(() => {
     const search = window.location.search;
@@ -22,64 +25,60 @@ export default () => {
     }
   }, [setTokens]);
 
-  const requestCurrentUserId = useCallback(async () => {
+  const storeAndRequestId = useCallback(async () => {
     try {
+      setLoading(true);
       const {
         data: { userId },
       } = await axios.get(serverUri + "store", {
         params: tokens,
       });
       setCurrentUserId(userId);
+      setLoading(false);
     } catch (e) {
       console.error(e);
+      setLoading(false);
     }
   }, [tokens, setCurrentUserId]);
-
-  const requestIntersection = useCallback(async () => {
-    try {
-      const {
-        data: { intersection },
-      } = await axios.get(serverUri + "intersection", {
-        params: {
-          id1: currentUserId,
-          id2: intersectWith,
-        },
-      });
-      setTracks(intersection);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [currentUserId, intersectWith, setTracks]);
 
   useEffect(() => {
     if (!tokens) retrieveTokens();
     else {
-      requestCurrentUserId();
+      storeAndRequestId();
     }
-  }, [tokens, retrieveTokens, requestCurrentUserId]);
+  }, [tokens, retrieveTokens, storeAndRequestId]);
 
-  const IntersectionButton = () => {
-    return (
-      <button
-        onClick={() => {
-          requestIntersection();
-        }}
-      >
-        Get Intersection
-      </button>
-    );
-  };
+  const LoadingMessage = () => <div>Retrieving playlist data...</div>;
+
   return (
-    <div>
+    <div class="">
       <LogIn loggedIn={tokens} />
-      {currentUserId && (
-        <UserSelection
-          currentUserId={currentUserId}
-          setIntersectWith={setIntersectWith}
-        />
+      {loading ? (
+        <LoadingMessage />
+      ) : (
+        <>
+          <DropUser userId={currentUserId} />
+          {currentUserId && (
+            <UserSelection
+              currentUserId={currentUserId}
+              intersectWith={intersectWith}
+              setIntersectWith={setIntersectWith}
+              setTracks={setTracks}
+            />
+          )}
+          <Tracks trackList={tracks} />
+          {tracks && intersectWith && (
+            <GeneratePlaylist
+              tokens={tokens}
+              userId={currentUserId}
+              tracks={tracks}
+              intersectWith={intersectWith}
+            />
+          )}
+        </>
       )}
-      {intersectWith && <IntersectionButton />}
-      {tracks && <Tracks trackList={tracks} />}
     </div>
   );
 };
+
+export default Home;

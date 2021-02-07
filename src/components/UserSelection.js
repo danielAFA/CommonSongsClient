@@ -1,20 +1,56 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import Select from "react-select";
 
-const UserSelection = ({ currentUserId, setIntersectWith }) => {
-  const [users, setUsers] = useState();
-  const [selectStates, setSelectStates] = useState([]);
+const serverUri = `http://localhost:80/`;
+
+const UserSelection = ({
+  currentUserId,
+  setIntersectWith,
+  intersectWith,
+  setTracks,
+}) => {
+  const [options, setOptions] = useState();
+
+  const requestIntersection = useCallback(async () => {
+    try {
+      const {
+        data: { intersection },
+      } = await axios.get(serverUri + "intersection", {
+        params: {
+          id1: currentUserId,
+          id2: intersectWith,
+        },
+      });
+      setTracks(intersection);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [currentUserId, intersectWith, setTracks]);
+
+  const IntersectionButton = () => {
+    if (!intersectWith) {
+      return null;
+    }
+    return (
+      <button
+        onClick={() => {
+          requestIntersection();
+        }}
+      >
+        Get Intersection
+      </button>
+    );
+  };
 
   useEffect(() => {
-    const serverUri = `http://localhost:80/`;
     const requestUsers = async () => {
       try {
         let {
           data: { userIds },
         } = await axios.get(serverUri + "user_ids");
         userIds = userIds.filter(id => id !== currentUserId);
-        setUsers(userIds);
-        setSelectStates(userIds.map(user => ({ name: user, selected: false })));
+        setOptions(userIds.map(option => ({ value: option, label: option })));
       } catch (e) {
         console.error(e);
       }
@@ -22,49 +58,25 @@ const UserSelection = ({ currentUserId, setIntersectWith }) => {
     requestUsers();
   }, [currentUserId]);
 
-  const handleSelection = useCallback(
-    e => {
-      const newStates = selectStates.map(user =>
-        user.name === e.target.value
-          ? { ...user, selected: true }
-          : { ...user, selected: false }
-      );
-      setSelectStates(newStates);
-      setIntersectWith(e.target.value);
-    },
-    [selectStates, setIntersectWith]
-  );
-
-  const Options = useMemo(
-    () => (
-      <ul>
-        {selectStates.map((option, i) => (
-          <li key={i}>
-            <label>
-              <input
-                type="radio"
-                name="user"
-                value={option.name}
-                checked={option.selected}
-                onChange={handleSelection}
-              />
-              {option.name}
-            </label>
-          </li>
-        ))}
-      </ul>
-    ),
-    [selectStates, handleSelection]
-  );
+  if (!currentUserId) {
+    return null;
+  }
 
   return (
     <div>
-      {users && (
+      {options && (
         <>
-          {users.length > 0
+          {options.length > 0
             ? "Compare liked songs with: "
-            : "No users to compare with yet"}
-          {Options}
+            : "No users to compare with"}
+          <Select
+            options={options}
+            isSearchable={true}
+            onChange={selectedOption => {
+              setIntersectWith(selectedOption.value);
+            }}
+          />
+          <IntersectionButton />
         </>
       )}
     </div>

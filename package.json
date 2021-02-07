@@ -3,30 +3,37 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^6.1.0",
     "@emotion/core": "^10.0.35",
+    "@emotion/eslint-plugin": "^11.0.0",
     "@emotion/styled": "^10.0.27",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
-    "axios": "^0.20.0",
+    "@tailwindcss/postcss7-compat": "^2.0.2",
+    "autoprefixer": "^9.8.6",
+    "axios": "^0.21.1",
+    "css": "^3.0.0",
     "handlebars": "^4.7.6",
     "html-react-parser": "^0.13.0",
     "jquery": "^3.5.1",
+    "postcss": "^7.0.35",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.3"
+    "react-scripts": "^4.0.2",
+    "react-select": "^4.0.2",
+    "stylelint-config-recommended": "^3.0.0",
+    "tailwind": "^4.0.0",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app",
     "plugins": [
-      "emotion"
+      "@emotion"
     ]
   },
   "browserslist": {

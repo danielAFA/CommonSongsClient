@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 
 const Tracks = ({ trackList }) => {
-  const trackListSize = trackList.length;
   const [displayTable, setDisplayTable] = useState();
 
   const handleClick = () => {
@@ -13,6 +12,10 @@ const Tracks = ({ trackList }) => {
   );
 
   const TrackTable = useMemo(() => {
+    if (!trackList) {
+      return null;
+    }
+
     const columns = ["cover", "name", "artists", "album"];
     return (
       <table>
@@ -44,10 +47,15 @@ const Tracks = ({ trackList }) => {
       </table>
     );
   }, [trackList]);
+
+  if (!trackList) {
+    return null;
+  }
+
   return (
     <div>
-      <>{trackListSize} tracks in common </>
-      {trackListSize > 0 && <ToggleTable />}
+      <>{trackList.length} tracks in common </>
+      {trackList.length > 0 && <ToggleTable />}
       {displayTable && TrackTable}
     </div>
   );
